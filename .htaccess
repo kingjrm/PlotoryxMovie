@@ -1,5 +1,10 @@
 RewriteEngine On
 
+# Block access to hidden files (like .env)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
 # Redirect all requests that are not existing files or directories to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
