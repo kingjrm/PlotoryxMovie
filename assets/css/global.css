@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-title);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--transition-fast);
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+button {
+    cursor: pointer;
+    font-family: var(--font-family);
+    border: none;
+    outline: none;
+}
+
+/* Premium Buttons */
+.btn {
+    padding: 12px 26px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--transition-medium);
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--accent-gradient);
+    color: white;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px var(--accent-glow);
+    filter: brightness(1.1);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--border-color-hover);
+    transform: translateY(-2px);
+}
+
+/* Page titles */
+.page-title {
+    font-size: 2.5rem;
+    margin-bottom: 24px;
+    background: linear-gradient(180deg, #fff 0%, #a5a9c5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: #1d2136;
+    border-radius: 5px;
+    border: 2px solid var(--bg-main);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #ff2a5f;
+}
+
+/* Mobile Responsive Optimization for phones */
+@media (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+    .container {
+        padding: 0 16px;
+    }
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.88rem;
+    }
+    .page-title {
+        font-size: 1.8rem;
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+    .container {
+        padding: 0 12px;
+    }
+    .btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        border-radius: 20px;
+    }
+}
+
+

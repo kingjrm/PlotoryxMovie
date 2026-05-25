@@ -1,0 +1,128 @@
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+    padding: 24px 0;
+}
+
+.movie-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    aspect-ratio: 2 / 3;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    display: block;
+}
+
+.movie-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-medium);
+}
+
+.movie-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--border-color-hover);
+    box-shadow: var(--card-shadow-hover);
+    z-index: 2;
+}
+
+.movie-card:hover img {
+    transform: scale(1.08);
+}
+
+/* Floating Rating Badge */
+.card-rating-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(12, 13, 22, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffb12a;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    z-index: 5;
+}
+
+.movie-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 30px 14px 14px;
+    background: linear-gradient(to top, rgba(6, 7, 12, 1) 0%, rgba(6, 7, 12, 0.8) 60%, rgba(6, 7, 12, 0) 100%);
+    transition: transform var(--transition-medium);
+    z-index: 3;
+}
+
+.movie-card:hover .movie-info {
+    transform: translateY(-2px);
+}
+
+.movie-title {
+    font-family: var(--font-family-title);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.movie-meta .media-type {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+}
+
+/* Mobile responsive scaling for grid movie cards */
+@media (max-width: 576px) {
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+        gap: 16px;
+        padding: 16px 0;
+    }
+    .movie-card {
+        border-radius: 10px;
+    }
+    .card-rating-badge {
+        padding: 2px 6px;
+        font-size: 0.65rem;
+        top: 6px;
+        left: 6px;
+    }
+    .movie-info {
+        padding: 20px 10px 10px;
+    }
+    .movie-title {
+        font-size: 0.85rem;
+    }
+    .movie-meta {
+        font-size: 0.72rem;
+    }
+}
+
+
