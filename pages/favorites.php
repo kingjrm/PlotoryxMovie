@@ -12,6 +12,17 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('watchlistGrid');
     const watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
@@ -22,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     watchlist.forEach(item => {
-        const title = item.title;
-        const poster_path = item.poster;
-        const id = item.id;
-        const type = item.type;
+        const title = escapeHTML(item.title);
+        const poster_path = escapeHTML(item.poster);
+        const id = escapeHTML(item.id);
+        const type = escapeHTML(item.type);
         const base_path = '<?= $base_path ?>';
         
         grid.innerHTML += `

@@ -319,6 +319,17 @@ if ($trending && isset($trending['results']) && !empty($trending['results'])) {
 </div>
 
 <script>
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const section = document.getElementById('continueWatchingSection');
     const grid = document.getElementById('continueWatchingGrid');
@@ -330,17 +341,24 @@ document.addEventListener('DOMContentLoaded', () => {
         
         continueList.forEach(item => {
             const isTV = item.type === 'tv';
-            const episodeInfo = isTV ? `S${item.season} Ep${item.episode}` : 'Movie';
-            const link = `<?= $base_path ?>/watch?id=${item.id}&type=${item.type}` + (isTV ? `&season=${item.season}&episode=${item.episode}` : '');
+            const episodeInfo = escapeHTML(isTV ? `S${item.season} Ep${item.episode}` : 'Movie');
+            const safeId = escapeHTML(item.id);
+            const safeType = escapeHTML(item.type);
+            const safeSeason = escapeHTML(item.season);
+            const safeEpisode = escapeHTML(item.episode);
+            const safeTitle = escapeHTML(item.title);
+            
+            const link = `<?= $base_path ?>/watch?id=${safeId}&type=${safeType}` + (isTV ? `&season=${safeSeason}&episode=${safeEpisode}` : '');
             
             let posterHtml = '';
             if (item.poster) {
-                posterHtml = `<img loading="lazy" src="${item.poster}" alt="${item.title}">`;
+                const safePoster = escapeHTML(item.poster);
+                posterHtml = `<img loading="lazy" src="${safePoster}" alt="${safeTitle}">`;
             } else {
                 posterHtml = `
                     <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, #121526 0%, #0c0d16 100%); border-radius:14px; padding:20px; text-align:center;">
                         <ion-icon name="image-outline" style="font-size: 2.5rem; color: rgba(255,255,255,0.1); margin-bottom:10px;"></ion-icon>
-                        <div style="font-size: 0.8rem; font-weight:600; color:var(--text-secondary); line-height: 1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical;">${item.title}</div>
+                        <div style="font-size: 0.8rem; font-weight:600; color:var(--text-secondary); line-height: 1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical;">${safeTitle}</div>
                     </div>
                 `;
             }
@@ -353,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="width:65%; height:100%; background:var(--accent-gradient); border-radius: 0 2px 2px 0;"></div>
                     </div>
                     <div class="movie-info">
-                        <div class="movie-title">${item.title}</div>
+                        <div class="movie-title">${safeTitle}</div>
                         <div class="movie-meta">
                             <span class="media-type" style="color: #ffb12a !important; font-weight:700;">${episodeInfo}</span>
                             <span style="display:flex; align-items:center; gap:2px; color:white;"><ion-icon name="play" style="font-size:0.8rem;"></ion-icon> Resume</span>

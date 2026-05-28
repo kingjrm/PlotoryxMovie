@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../config/tmdb.php';
 include __DIR__ . '/../includes/header.php';
 
-$page = $_GET['page'] ?? 1;
+$page = max(1, (int)($_GET['page'] ?? 1));
 $trending = fetchFromTMDB('/trending/all/day', ['page' => $page]);
 ?>
 

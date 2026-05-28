@@ -576,7 +576,7 @@ body.lights-off-active .player-container {
                 <p style="color: var(--text-secondary); line-height:1.7; font-size:1.02rem;"><?= htmlspecialchars($details['overview']) ?></p>
                 
                 <div style="margin-top: 35px;">
-                    <a href="<?= $base_path ?>/details?id=<?= $id ?>&type=<?= $type ?>" class="btn btn-secondary">
+                    <a href="<?= $base_path ?>/details?id=<?= htmlspecialchars($id) ?>&type=<?= htmlspecialchars($type) ?>" class="btn btn-secondary">
                         <ion-icon name="arrow-back" style="font-size:1.1rem;"></ion-icon> Back to Details
                     </a>
                 </div>
@@ -659,15 +659,26 @@ body.lights-off-active .player-container {
 </div>
 
 <script>
-const tmdbId = "<?= $id ?>";
-const mediaType = "<?= $type ?>";
-let currentSeason = parseInt("<?= $season ?>") || 1;
-let currentEpisode = parseInt("<?= $episode ?>") || 1;
+const tmdbId = <?= json_encode($id) ?>;
+const mediaType = <?= json_encode($type) ?>;
+let currentSeason = parseInt(<?= json_encode($season) ?>) || 1;
+let currentEpisode = parseInt(<?= json_encode($episode) ?>) || 1;
 let currentServer = 1;
 const basePath = window.basePath || '';
 
 // Seasons metadata
 const seasonsData = <?= json_encode($seasons) ?>;
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+}
 
 // Server embed formats
 function getEmbedUrl(server, id, type, season, episode) {
@@ -784,9 +795,9 @@ function renderEpisodeRows(episodes) {
     listContainer.innerHTML = '';
     
     episodes.forEach(ep => {
-        const epNum = ep.episode_number;
-        const epName = ep.name || `Episode ${epNum}`;
-        const duration = ep.runtime ? `${ep.runtime}m` : '45m';
+        const epNum = escapeHTML(ep.episode_number);
+        const epName = escapeHTML(ep.name || `Episode ${epNum}`);
+        const duration = escapeHTML(ep.runtime ? `${ep.runtime}m` : '45m');
         const stillPath = ep.still_path 
             ? `https://image.tmdb.org/t/p/w185${ep.still_path}`
             : '';

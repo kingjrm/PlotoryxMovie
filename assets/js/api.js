@@ -1,3 +1,13 @@
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+}
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const liveResults = document.getElementById('liveSearchResults');
@@ -38,10 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderLiveResults(results) {
         liveResults.innerHTML = '';
         results.forEach(item => {
-            const title = item.title || item.name;
-            const type = item.title ? 'movie' : 'tv';
-            const year = (item.release_date || item.first_air_date || '').substring(0, 4) || 'N/A';
-            const rating = item.vote_average ? round(item.vote_average, 1) : 'N/A';
+            const title = escapeHTML(item.title || item.name);
+            const type = escapeHTML(item.title ? 'movie' : 'tv');
+            const year = escapeHTML((item.release_date || item.first_air_date || '').substring(0, 4) || 'N/A');
+            const rating = escapeHTML(item.vote_average ? round(item.vote_average, 1) : 'N/A');
+            const safeId = escapeHTML(item.id);
             
             // Poster path
             const posterUrl = item.poster_path 
@@ -49,12 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '';
                 
             const a = document.createElement('a');
-            a.href = `${window.location.origin}${basePath}/details?id=${item.id}&type=${type}`;
+            a.href = `${window.location.origin}${basePath}/details?id=${safeId}&type=${type}`;
             a.className = 'search-item';
             
             let posterHtml = '';
             if (posterUrl) {
-                posterHtml = `<img src="${posterUrl}" alt="${title}">`;
+                const safePoster = escapeHTML(posterUrl);
+                posterHtml = `<img src="${safePoster}" alt="${title}">`;
             } else {
                 posterHtml = `
                     <div style="width:40px; height:56px; display:flex; justify-content:center; align-items:center; background:#161827; border-radius:4px;">

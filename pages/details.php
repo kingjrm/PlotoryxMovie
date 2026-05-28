@@ -334,7 +334,7 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
                 <?php endif; ?>
                 <div class="genres">
                     <?php foreach ($details['genres'] as $genre): ?>
-                        <span class="genre-tag"><?= $genre['name'] ?></span>
+                        <span class="genre-tag"><?= htmlspecialchars($genre['name']) ?></span>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -347,10 +347,10 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
             <p class="overview"><?= htmlspecialchars($details['overview']) ?></p>
             
             <div class="action-buttons">
-                <a href="<?= $base_path ?>/watch?id=<?= $id ?>&type=<?= $type ?>" class="btn btn-primary">
+                <a href="<?= $base_path ?>/watch?id=<?= htmlspecialchars($id) ?>&type=<?= htmlspecialchars($type) ?>" class="btn btn-primary">
                     <ion-icon name="play-circle" style="font-size: 1.4rem;"></ion-icon> Watch Now
                 </a>
-                <button id="addWatchlist" class="btn btn-secondary" data-id="<?= $id ?>" data-type="<?= $type ?>" data-title="<?= htmlspecialchars($title) ?>" data-poster="<?= $poster_path ?>">
+                <button id="addWatchlist" class="btn btn-secondary" data-id="<?= htmlspecialchars($id) ?>" data-type="<?= htmlspecialchars($type) ?>" data-title="<?= htmlspecialchars($title) ?>" data-poster="<?= htmlspecialchars($poster_path) ?>">
                     <ion-icon name="add"></ion-icon> <span>Add to Watchlist</span>
                 </button>
             </div>

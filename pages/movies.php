@@ -95,11 +95,11 @@ function applyMovieFilter() {
 // Infinite Scroll implementation
 (function() {
     let currentPage = 1;
-    let totalPages = parseInt("<?= $totalPages ?>") || 1;
+    let totalPages = parseInt(<?= json_encode($totalPages) ?>) || 1;
     let loading = false;
     const grid = document.getElementById('movieGrid');
     const spinner = document.getElementById('infiniteScrollLoading');
-    const genre = "<?= $genre ?>";
+    const genre = <?= json_encode($genre) ?>;
     
     if (totalPages <= 1) return;
 
@@ -145,15 +145,27 @@ function applyMovieFilter() {
         }
     }
 
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag));
+    }
+
     function createCard(item, basePath) {
-        const title = item.title || item.name || 'Unknown';
-        const type = item.media_type || (item.title ? 'movie' : 'tv');
+        const title = escapeHTML(item.title || item.name || 'Unknown');
+        const type = escapeHTML(item.media_type || (item.title ? 'movie' : 'tv'));
         const poster = item.poster_path 
             ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
             : 'https://via.placeholder.com/342x513?text=No+Poster';
+        const id = escapeHTML(item.id);
             
         return `
-            <a href="${basePath}/details?id=${item.id}&type=${type}" class="movie-card">
+            <a href="${basePath}/details?id=${id}&type=${type}" class="movie-card">
                 <img loading="lazy" src="${poster}" alt="${title}">
                 <div class="movie-info">
                     <div class="movie-title">${title}</div>

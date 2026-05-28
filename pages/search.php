@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/tmdb.php';
 include __DIR__ . '/../includes/header.php';
 
 $query = $_GET['q'] ?? '';
-$page = $_GET['page'] ?? 1;
+$page = max(1, (int)($_GET['page'] ?? 1));
 
 $results = [];
 if ($query) {
