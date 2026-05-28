@@ -141,4 +141,67 @@ button {
     }
 }
 
+/* Premium Filter Bar */
+.filter-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 35px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.filter-select-wrapper select {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 36px 10px 18px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.filter-select-wrapper select:focus,
+.filter-select-wrapper select:hover {
+    border-color: #f5c518;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 10px rgba(245, 197, 24, 0.15);
+}
+
+.filter-select-wrapper::after {
+    content: '\25BC';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    pointer-events: none;
+}
+
+/* Fix for unreadable white dropdown text inside options */
+select option {
+    background-color: #0c0d16 !important;
+    color: #ffffff !important;
+}
+
+/* Spinner Animation helper */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
 
