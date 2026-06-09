@@ -196,6 +196,9 @@ if ($type === 'tv' && isset($details['seasons'])) {
     transition: all var(--transition-fast);
     cursor: pointer;
     width: 100%;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .server-btn:hover {
@@ -210,6 +213,58 @@ if ($type === 'tv' && isset($details['seasons'])) {
     box-shadow: 0 4px 12px var(--accent-glow);
 }
 
+.server-panel {
+    background: #0c0d16;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 18px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.server-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.server-panel-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.server-panel-header h4 ion-icon {
+    color: #f5c518;
+    font-size: 1.15rem;
+}
+
+.server-panel-header span {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.server-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+}
+
 /* Season Select Dropdown styling */
 .season-select-wrapper select {
     background: #161827;
@@ -222,8 +277,12 @@ if ($type === 'tv' && isset($details['seasons'])) {
     outline: none;
     cursor: pointer;
     width: 100%;
+    max-width: 100%;
     margin-bottom: 15px;
     transition: border var(--transition-fast);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .season-select-wrapper select:focus {
@@ -232,26 +291,28 @@ if ($type === 'tv' && isset($details['seasons'])) {
 
 /* Episode container box from Screenshot */
 .episode-box {
-    background: #0d0f1a;
+    background: #0c0d16;
     border: 1px solid var(--border-color);
     border-radius: 16px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    max-width: 100%;
 }
 
 .episode-box-header {
     display: flex;
     justify-content: space-between;
-    align-align-items: center;
+    align-items: center;
     padding: 14px 18px;
     background: rgba(255, 255, 255, 0.02);
     border-bottom: 1px solid var(--border-color);
 }
 
 .episode-list {
-    max-height: 400px;
+    max-height: 480px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .episode-list::-webkit-scrollbar {
@@ -267,8 +328,8 @@ if ($type === 'tv' && isset($details['seasons'])) {
 
 .episode-row {
     display: flex;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 16px;
+    padding: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     transition: all var(--transition-fast);
     cursor: pointer;
@@ -285,14 +346,15 @@ if ($type === 'tv' && isset($details['seasons'])) {
 }
 
 .episode-row.active {
-    background: rgba(245, 197, 24, 0.04);
-    border-left: 3px solid #f5c518;
+    background: rgba(229, 9, 20, 0.06);
+    border-left: 3px solid var(--accent);
     padding-left: 13px; /* compensate border */
 }
 
 .episode-thumb-container {
-    flex: 0 0 100px;
-    width: 100px;
+    position: relative;
+    flex: 0 0 120px;
+    width: 120px;
     aspect-ratio: 16 / 9;
     border-radius: 6px;
     overflow: hidden;
@@ -304,42 +366,89 @@ if ($type === 'tv' && isset($details['seasons'])) {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform var(--transition-fast);
+}
+
+.episode-row:hover .episode-thumb-container img {
+    transform: scale(1.05);
+}
+
+.episode-play-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.episode-row:hover .episode-play-overlay {
+    opacity: 1;
+}
+
+.episode-play-overlay ion-icon {
+    font-size: 1.6rem;
+    color: white;
+    transform: scale(0.8);
+    transition: transform var(--transition-fast);
+}
+
+.episode-row:hover .episode-play-overlay ion-icon {
+    transform: scale(1);
+}
+
+.episode-row.active .episode-play-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.episode-row.active .episode-play-overlay ion-icon {
+    color: var(--accent);
+    transform: scale(1);
 }
 
 .episode-row-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.episode-row-ep {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: #f5c518;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
+.episode-row-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    width: 100%;
 }
 
-.episode-row-title {
-    font-size: 0.85rem;
+.episode-row-number-title {
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--text-primary);
-    line-height: 1.3;
-    margin-bottom: 3px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+    flex: 1;
 }
 
-.episode-row.active .episode-row-title {
-    color: #f5c518;
+.episode-row.active .episode-row-number-title {
+    color: var(--accent);
 }
 
 .episode-row-duration {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     font-weight: 600;
+    flex-shrink: 0;
 }
+
+
 
 .action-control-btn {
     background: rgba(255, 255, 255, 0.04);
@@ -422,91 +531,251 @@ body.lights-off-active .player-container {
 /* Fix mobile responsiveness and prevent items from looking too massive */
 @media (max-width: 992px) {
     .watch-grid, .watch-grid.theater-active {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) !important;
     }
     .player-container {
         grid-column: 1 !important;
         grid-row: 1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
     }
     .watch-left {
         grid-column: 1 !important;
         grid-row: 2 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     .watch-right {
         grid-column: 1 !important;
         grid-row: 3 !important;
         margin-top: 10px;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
     }
     .sidebar-panel {
-        position: static;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
     .watch-container {
-        padding-top: calc(var(--header-height) + 10px);
+        padding-top: calc(var(--header-height) + 10px) !important;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
     }
     .watch-grid {
-        gap: 16px;
-        margin-bottom: 30px;
+        gap: 16px !important;
+        margin-bottom: 30px !important;
+        grid-template-columns: minmax(0, 1fr) !important;
     }
     #playingTitle {
         font-size: 1.5rem !important;
-        line-height: 1.2;
+        line-height: 1.2 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
     }
     #episodeSubtitle {
         font-size: 0.9rem !important;
-        margin-bottom: 12px;
+        margin-bottom: 12px !important;
     }
     .watch-left p {
         font-size: 0.92rem !important;
-        line-height: 1.6;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     .sidebar-panel {
-        padding: 16px;
-        gap: 18px;
+        padding: 16px !important;
+        gap: 18px !important;
     }
     .sidebar-section {
-        padding-bottom: 18px;
+        padding-bottom: 18px !important;
     }
     .player-navigation-bar {
-        padding: 8px 12px;
-        margin-top: 12px;
-        border-radius: 8px;
+        padding: 10px 12px !important;
+        margin-top: 12px !important;
+        border-radius: 8px !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        grid-template-areas: 
+            "indicator indicator"
+            "prev next" !important;
+        gap: 10px !important;
+        justify-items: center !important;
+        width: 100% !important;
+        min-width: 0 !important;
     }
     .nav-episode-btn {
-        padding: 8px 16px;
-        font-size: 0.78rem;
+        padding: 8px 16px !important;
+        font-size: 0.78rem !important;
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    #prevEpisodeBtn {
+        grid-area: prev !important;
+    }
+    #nextEpisodeBtn {
+        grid-area: next !important;
     }
     #playerNavIndicator {
-        font-size: 0.78rem;
+        font-size: 0.78rem !important;
+        grid-area: indicator !important;
+        margin-bottom: 2px !important;
+        text-align: center !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+    }
+    .server-panel {
+        padding: 12px !important;
+    }
+    .server-panel-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+    }
+    .server-panel-header span {
+        font-size: 0.74rem !important;
+        line-height: 1.4 !important;
+    }
+    .server-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 8px !important;
+    }
+    .server-btn {
+        padding: 8px 10px !important;
+        font-size: 0.76rem !important;
+        text-align: center !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
     }
     .episode-box-header {
-        padding: 10px 14px;
+        padding: 10px 14px !important;
     }
     .episode-list {
-        max-height: 320px;
+        max-height: 320px !important;
     }
     .episode-row {
-        padding: 10px 12px;
-        gap: 10px;
+        padding: 10px 12px !important;
+        gap: 10px !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
     .episode-thumb-container {
-        flex: 0 0 80px;
-        width: 80px;
+        flex: 0 0 80px !important;
+        width: 80px !important;
     }
-    .episode-row-title {
-        font-size: 0.78rem;
-    }
-    .episode-row-ep {
-        font-size: 0.65rem;
+    .episode-row-number-title {
+        font-size: 0.78rem !important;
     }
     .episode-row-duration {
-        font-size: 0.68rem;
+        font-size: 0.68rem !important;
     }
     .action-control-btn {
-        padding: 10px 14px;
-        font-size: 0.8rem;
+        padding: 10px 14px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .watch-container {
+        padding-top: calc(var(--header-height) + 8px) !important;
+    }
+    .watch-grid {
+        gap: 12px !important;
+        margin-bottom: 24px !important;
+    }
+    .player-wrapper {
+        border-radius: 8px !important;
+    }
+    #playingTitle {
+        font-size: 1.35rem !important;
+    }
+    #episodeSubtitle {
+        font-size: 0.85rem !important;
+        margin-bottom: 8px !important;
+    }
+    .watch-left p {
+        font-size: 0.88rem !important;
+        line-height: 1.5 !important;
+    }
+    .sidebar-panel {
+        padding: 12px !important;
+        gap: 14px !important;
+        border-radius: 12px !important;
+    }
+    .sidebar-title {
+        font-size: 0.85rem !important;
+        margin-bottom: 10px !important;
+    }
+    .season-select-wrapper select {
+        padding: 8px 12px !important;
+        font-size: 0.82rem !important;
+        margin-bottom: 10px !important;
+        border-radius: 8px !important;
+    }
+    .episode-box {
+        border-radius: 12px !important;
+    }
+    .episode-box-header {
+        padding: 8px 12px !important;
+    }
+    .episode-list {
+        max-height: 280px !important;
+    }
+    .episode-row {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+    }
+    .episode-thumb-container {
+        flex: 0 0 70px !important;
+        width: 70px !important;
+    }
+    .episode-row-number-title {
+        font-size: 0.75rem !important;
+    }
+    .episode-row-duration {
+        font-size: 0.65rem !important;
+    }
+    .server-panel {
+        padding: 10px !important;
+        border-radius: 12px !important;
+    }
+    .server-panel-header h4 {
+        font-size: 0.9rem !important;
+    }
+    .server-panel-header span {
+        font-size: 0.7rem !important;
+    }
+    .server-btn {
+        padding: 6px 8px !important;
+        font-size: 0.72rem !important;
+        border-radius: 6px !important;
+    }
+    .player-navigation-bar {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+        border-radius: 6px !important;
+    }
+    .nav-episode-btn {
+        padding: 6px 12px !important;
+        font-size: 0.74rem !important;
+        border-radius: 20px !important;
+    }
+    .action-control-btn {
+        padding: 8px 12px !important;
+        font-size: 0.76rem !important;
+        border-radius: 8px !important;
     }
 }
 
@@ -565,6 +834,26 @@ body.lights-off-active .player-container {
                         Next <ion-icon name="play-forward-outline"></ion-icon>
                     </button>
                 </div>
+
+                <!-- Servers Selector panel - Moved below player to avoid scrolling on the side -->
+                <div class="server-panel">
+                    <div class="server-panel-header">
+                        <h4>
+                            <ion-icon name="server-outline"></ion-icon> Stream Servers
+                        </h4>
+                        <span>If the video doesn't load, switch to another server</span>
+                    </div>
+                    <div class="server-grid">
+                        <button class="server-btn active" onclick="setServer(1)">Server 1 (VidSrc.to / Mirror)</button>
+                        <button class="server-btn" onclick="setServer(2)">Server 2 (VidSrc.me / Mirror)</button>
+                        <button class="server-btn" onclick="setServer(3)">Server 3 (VidSrc.cc)</button>
+                        <button class="server-btn" onclick="setServer(4)">Server 4 (VidLink.pro)</button>
+                        <button class="server-btn" onclick="setServer(5)">Server 5 (Embed.su)</button>
+                        <button class="server-btn" onclick="setServer(6)">Server 6 (AutoEmbed.cc)</button>
+                        <button class="server-btn" onclick="setServer(7)">Server 7 (MoviesAPI.club)</button>
+                        <button class="server-btn" onclick="setServer(8)">Server 8 (SuperEmbed)</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Left Info column -->
@@ -620,20 +909,6 @@ body.lights-off-active .player-container {
                         </div>
                     <?php endif; ?>
 
-                    <!-- Servers Selector panel - 8 working server embeds -->
-                    <div class="sidebar-section">
-                        <h4 class="sidebar-title"><ion-icon name="server-outline"></ion-icon> Servers</h4>
-                        <div class="server-list" style="max-height: 200px; overflow-y: auto; padding-right: 4px; display:flex; flex-direction:column; gap:8px;">
-                            <button class="server-btn active" onclick="setServer(1)">Server 1 (VidSrc.to)</button>
-                            <button class="server-btn" onclick="setServer(2)">Server 2 (VidSrc.me)</button>
-                            <button class="server-btn" onclick="setServer(3)">Server 3 (VidSrc.cc)</button>
-                            <button class="server-btn" onclick="setServer(4)">Server 4 (VidLink)</button>
-                            <button class="server-btn" onclick="setServer(5)">Server 5 (Embed.su)</button>
-                            <button class="server-btn" onclick="setServer(6)">Server 6 (AutoEmbed)</button>
-                            <button class="server-btn" onclick="setServer(7)">Server 7 (MoviesAPI)</button>
-                            <button class="server-btn" onclick="setServer(8)">Server 8 (SuperEmbed)</button>
-                        </div>
-                    </div>
 
                     <!-- Control Settings panel -->
                     <div class="sidebar-section">
@@ -683,40 +958,40 @@ function escapeHTML(str) {
 // Server embed formats
 function getEmbedUrl(server, id, type, season, episode) {
     switch(server) {
-        case 1: // VidSrc.to
+        case 1: // VidSrc.to (Using active vsrc.su mirror)
             return type === 'movie' 
-                ? `https://vidsrc.to/embed/movie/${id}` 
-                : `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
-        case 2: // VidSrc.me
+                ? `https://vsrc.su/embed/movie/${id}` 
+                : `https://vsrc.su/embed/tv/${id}/${season}/${episode}`;
+        case 2: // VidSrc.me (Using active vidsrcme.ru mirror)
             return type === 'movie'
-                ? `https://vidsrc.me/embed/movie?tmdb=${id}`
-                : `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
-        case 3: // VidSrc.cc (Working alternative)
+                ? `https://vidsrcme.ru/embed/movie?tmdb=${id}`
+                : `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
+        case 3: // VidSrc.cc
             return type === 'movie'
                 ? `https://vidsrc.cc/v2/embed/movie/${id}`
                 : `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
-        case 4: // VidLink.pro (Highly reliable)
+        case 4: // VidLink.pro (Corrected path structure with crimson theme matching)
             return type === 'movie'
-                ? `https://vidlink.pro/embed/movie/${id}`
-                : `https://vidlink.pro/embed/tv/${id}/${season}/${episode}`;
-        case 5: // Embed.su (Operational fallback)
+                ? `https://vidlink.pro/movie/${id}?primaryColor=e50914`
+                : `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=e50914`;
+        case 5: // Embed.su
             return type === 'movie'
                 ? `https://embed.su/embed/movie/${id}`
                 : `https://embed.su/embed/tv/${id}/${season}/${episode}`;
-        case 6: // AutoEmbed (Reliable proxy)
+        case 6: // AutoEmbed (Updated autoembed.co -> autoembed.cc with correct endpoints)
             return type === 'movie'
-                ? `https://autoembed.co/movie/tmdb/${id}`
-                : `https://autoembed.co/tv/tmdb/${id}-${season}-${episode}`;
+                ? `https://autoembed.cc/embed/movie/${id}`
+                : `https://autoembed.cc/embed/tv/${id}?s=${season}&e=${episode}`;
         case 7: // MoviesAPI.club
             return type === 'movie'
                 ? `https://moviesapi.club/movie/${id}`
                 : `https://moviesapi.club/tv/${id}/${season}/${episode}`;
-        case 8: // SuperEmbed
+        case 8: // SuperEmbed / MultiEmbed
             return type === 'movie'
                 ? `https://multiembed.to/embed.php?type=movie&tmdb=${id}`
                 : `https://multiembed.to/embed.php?type=tv&tmdb=${id}&s=${season}&e=${episode}`;
         default:
-            return `https://vidsrc.to/embed/movie/${id}`;
+            return `https://vsrc.su/embed/movie/${id}`;
     }
 }
 
@@ -795,7 +1070,7 @@ function renderEpisodeRows(episodes) {
     listContainer.innerHTML = '';
     
     episodes.forEach(ep => {
-        const epNum = escapeHTML(ep.episode_number);
+        const epNum = parseInt(ep.episode_number);
         const epName = escapeHTML(ep.name || `Episode ${epNum}`);
         const duration = escapeHTML(ep.runtime ? `${ep.runtime}m` : '45m');
         const stillPath = ep.still_path 
@@ -815,8 +1090,8 @@ function renderEpisodeRows(episodes) {
             thumbHtml = `<img src="${stillPath}" alt="${epName}" loading="lazy">`;
         } else {
             thumbHtml = `
-                <div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#1c1e30;">
-                    <ion-icon name="play" style="font-size:1.5rem; color:rgba(255,255,255,0.1);"></ion-icon>
+                <div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#161827;">
+                    <ion-icon name="play" style="font-size:1.5rem; color:rgba(255,255,255,0.05);"></ion-icon>
                 </div>
             `;
         }
@@ -824,11 +1099,15 @@ function renderEpisodeRows(episodes) {
         row.innerHTML = `
             <div class="episode-thumb-container">
                 ${thumbHtml}
+                <div class="episode-play-overlay">
+                    <ion-icon name="play-sharp"></ion-icon>
+                </div>
             </div>
             <div class="episode-row-info">
-                <div class="episode-row-ep">EP ${epNum}</div>
-                <div class="episode-row-title">${epName}</div>
-                <div class="episode-row-duration">${duration}</div>
+                <div class="episode-row-title-row">
+                    <span class="episode-row-number-title">${epNum}. ${epName}</span>
+                    <span class="episode-row-duration">${duration}</span>
+                </div>
             </div>
         `;
         
@@ -951,6 +1230,7 @@ function saveContinueWatching() {
         type: mediaType,
         title: "<?= htmlspecialchars($title) ?>",
         poster: "<?= $poster_path ?>",
+        backdrop: "<?= $backdrop_path ?>",
         season: mediaType === 'tv' ? currentSeason : null,
         episode: mediaType === 'tv' ? currentEpisode : null,
         timestamp: Date.now()

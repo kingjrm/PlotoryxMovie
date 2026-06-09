@@ -71,5 +71,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Movie card click micro-animation
+    document.addEventListener('click', (e) => {
+        const card = e.target.closest('.movie-card');
+        if (card) {
+            // Only trigger transition if the link goes to a details or watch page
+            const href = card.getAttribute('href');
+            if (href && (href.includes('details') || href.includes('watch') || href.startsWith('/') || href.startsWith('.'))) {
+                e.preventDefault();
+                
+                // Add clicking class to target card
+                card.classList.add('card-clicking');
+                
+                // Dim all other cards in the same grid
+                const grid = card.closest('.movie-grid');
+                if (grid) {
+                    grid.querySelectorAll('.movie-card').forEach(other => {
+                        if (other !== card) {
+                            other.style.opacity = '0.25';
+                            other.style.transform = 'scale(0.95)';
+                            other.style.filter = 'blur(1px)';
+                        }
+                    });
+                }
+                
+                // Navigate after animation delay
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 250);
+            }
+        }
+    });
 });
 

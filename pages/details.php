@@ -24,6 +24,19 @@ $title = $details['title'] ?? $details['name'] ?? 'Unknown';
 $release_date = $details['release_date'] ?? $details['first_air_date'] ?? '';
 $year = substr($release_date, 0, 4);
 $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
+
+// Find YouTube Trailer
+$trailer_key = '';
+$trailer_name = 'Official Trailer';
+if (isset($details['videos']['results'])) {
+    foreach ($details['videos']['results'] as $video) {
+        if ($video['site'] === 'YouTube' && ($video['type'] === 'Trailer' || $video['type'] === 'Teaser')) {
+            $trailer_key = $video['key'];
+            $trailer_name = $video['name'] ?? ($video['type'] === 'Teaser' ? 'Official Teaser' : 'Official Trailer');
+            break;
+        }
+    }
+}
 ?>
 
 <style>
@@ -310,6 +323,60 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
         margin-bottom: 6px;
     }
 }
+
+/* Trailer Modal Overlay */
+.trailer-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(4, 5, 10, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+.trailer-modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.trailer-modal-container {
+    width: 90%;
+    max-width: 960px;
+    background: #0c0d16;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(229, 9, 20, 0.15);
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.85);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.trailer-modal-overlay.active .trailer-modal-container {
+    transform: scale(1);
+}
+.trailer-modal-video-ratio {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    background: #000;
+}
+#closeTrailerBtn ion-icon {
+    transition: transform 0.2s ease;
+}
+#closeTrailerBtn:hover {
+    color: var(--accent) !important;
+}
+#closeTrailerBtn:hover ion-icon {
+    transform: scale(1.1) rotate(90deg);
+}
 </style>
 
 
@@ -350,6 +417,11 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
                 <a href="<?= $base_path ?>/watch?id=<?= htmlspecialchars($id) ?>&type=<?= htmlspecialchars($type) ?>" class="btn btn-primary">
                     <ion-icon name="play-circle" style="font-size: 1.4rem;"></ion-icon> Watch Now
                 </a>
+                <?php if ($trailer_key): ?>
+                    <button class="btn btn-secondary" id="playTrailerBtn">
+                        <ion-icon name="videocam-outline" style="font-size: 1.4rem;"></ion-icon> Watch Trailer
+                    </button>
+                <?php endif; ?>
                 <button id="addWatchlist" class="btn btn-secondary" data-id="<?= htmlspecialchars($id) ?>" data-type="<?= htmlspecialchars($type) ?>" data-title="<?= htmlspecialchars($title) ?>" data-poster="<?= htmlspecialchars($poster_path) ?>">
                     <ion-icon name="add"></ion-icon> <span>Add to Watchlist</span>
                 </button>
@@ -360,17 +432,6 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
 
 <div class="container">
     <?php
-    // Find YouTube Trailer
-    $trailer_key = '';
-    if (isset($details['videos']['results'])) {
-        foreach ($details['videos']['results'] as $video) {
-            if ($video['site'] === 'YouTube' && ($video['type'] === 'Trailer' || $video['type'] === 'Teaser')) {
-                $trailer_key = $video['key'];
-                break;
-            }
-        }
-    }
-    
     // Recommendations
     $recs = $details['recommendations']['results'] ?? [];
     ?>
@@ -378,7 +439,7 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
     <div class="tabs-container">
         <button class="tab-btn active" onclick="switchTab('castTab', this)">Cast</button>
         <?php if ($trailer_key): ?>
-            <button class="tab-btn" onclick="switchTab('trailerTab', this)">Official Trailer</button>
+            <button class="tab-btn" onclick="document.getElementById('playTrailerBtn').click()"><?= htmlspecialchars($trailer_name) ?></button>
         <?php endif; ?>
         <?php if (!empty($recs)): ?>
             <button class="tab-btn" onclick="switchTab('recsTab', this)">More Like This</button>
@@ -396,7 +457,7 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
             foreach ($cast as $actor):
                 $actor_img = $actor['profile_path'] ? $config['TMDB_IMAGE_BASE_URL'] . 'w185' . $actor['profile_path'] : '';
             ?>
-                <div class="actor-card">
+                <div class="actor-card cast-trigger" data-id="<?= $actor['id'] ?>" style="cursor: pointer;">
                     <?php if ($actor_img): ?>
                         <img class="actor-img" src="<?= $actor_img ?>" alt="<?= htmlspecialchars($actor['name']) ?>">
                     <?php else: ?>
@@ -412,17 +473,7 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
         </div>
     </div>
 
-    <!-- Trailer Tab -->
-    <?php if ($trailer_key): ?>
-        <div id="trailerTab" class="tab-content">
-            <div style="max-width: 900px; margin: 0 auto;">
-                <div class="trailer-wrapper">
-                    <!-- YouTube video lazy loading -->
-                    <iframe src="" data-src="https://www.youtube.com/embed/<?= $trailer_key ?>?rel=0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
+
 
     <!-- Recommendations Tab -->
     <?php if (!empty($recs)): ?>
@@ -439,6 +490,24 @@ $runtime = $details['runtime'] ?? ($details['episode_run_time'][0] ?? null);
     <?php endif; ?>
 </div>
 
+<!-- Trailer Modal Overlay -->
+<div class="trailer-modal-overlay" id="trailerModal">
+    <div class="trailer-modal-container">
+        <div class="trailer-modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; background:#11121d; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <h3 style="margin:0; font-size:1.05rem; font-weight:700; color:white; font-family:var(--font-family-title); display:flex; align-items:center; gap:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: calc(100% - 40px);">
+                <ion-icon name="film-outline" style="color:var(--accent); font-size: 1.25rem; flex-shrink: 0;"></ion-icon>
+                <span id="trailerModalTitle"><?= htmlspecialchars($title) ?> - <?= htmlspecialchars($trailer_name) ?></span>
+            </h3>
+            <button id="closeTrailerBtn" aria-label="Close trailer" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.6rem; display:flex; align-items:center; transition:color var(--transition-fast);">
+                <ion-icon name="close"></ion-icon>
+            </button>
+        </div>
+        <div class="trailer-modal-video-ratio">
+            <iframe id="trailerPlayer" src="" allowfullscreen allow="autoplay; fullscreen" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
 function switchTab(tabId, btn) {
     // Hide all tab contents
@@ -453,17 +522,71 @@ function switchTab(tabId, btn) {
     
     // Show current tab content & button line
     const targetTab = document.getElementById(tabId);
-    targetTab.classList.add('active');
-    btn.classList.add('active');
-    
-    // Lazy load iframe if it's the trailer tab
-    if (tabId === 'trailerTab') {
-        const iframe = targetTab.querySelector('iframe');
-        if (iframe && !iframe.src) {
-            iframe.src = iframe.getAttribute('data-src');
-        }
+    if (targetTab) {
+        targetTab.classList.add('active');
     }
+    btn.classList.add('active');
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const playBtn = document.getElementById('playTrailerBtn');
+    const modal = document.getElementById('trailerModal');
+    const closeBtn = document.getElementById('closeTrailerBtn');
+    const player = document.getElementById('trailerPlayer');
+    
+    if (playBtn && modal && closeBtn && player) {
+        const trailerKey = <?= json_encode($trailer_key) ?>;
+        const trailerName = <?= json_encode($trailer_name) ?>;
+        const itemTitle = <?= json_encode($title) ?>;
+        
+        playBtn.addEventListener('click', () => {
+            player.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0`;
+            const titleSpan = document.getElementById('trailerModalTitle');
+            if (titleSpan) {
+                titleSpan.textContent = `${itemTitle} - ${trailerName}`;
+            }
+            
+            // Fetch accurate YouTube title dynamically via oEmbed API
+            if (trailerKey) {
+                fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${trailerKey}&format=json`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to fetch video details');
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data && data.title && titleSpan) {
+                            titleSpan.textContent = data.title;
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('oEmbed fetch failed:', err);
+                        // Fallback is already loaded
+                    });
+            }
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        const closeModal = () => {
+            modal.classList.remove('active');
+            player.src = '';
+            document.body.style.overflow = '';
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    }
+});
 </script>
 <script src="<?= $base_path ?>/assets/js/watchlist.js"></script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

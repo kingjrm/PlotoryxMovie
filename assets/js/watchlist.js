@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const icon = document.createElement('ion-icon');
         icon.name = 'bookmark';
-        icon.style.color = '#ff2a5f';
+        icon.style.color = '#e50914';
         icon.style.fontSize = '1.2rem';
         
         const text = document.createElement('span');

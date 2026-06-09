@@ -9,7 +9,8 @@ $base_path = $config['BASE_URL'];
         </div>
     </footer>
     
-    <script src="<?= $base_path ?>/assets/js/app.js?v=1.4"></script>
-    <script src="<?= $base_path ?>/assets/js/api.js?v=1.4"></script>
+    <script src="<?= $base_path ?>/assets/js/app.js?v=2.0"></script>
+    <script src="<?= $base_path ?>/assets/js/api.js?v=2.0"></script>
+    <script src="<?= $base_path ?>/assets/js/cast-modal.js?v=2.0"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@ function getRoutes() {
         '/movies' => 'movies.php',
         '/tv' => 'tv.php',
         '/trending' => 'trending.php',
+        '/genres' => 'genres.php',
         '/search' => 'search.php',
         '/details' => 'details.php',
         '/watch' => 'watch.php',
