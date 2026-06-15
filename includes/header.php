@@ -18,11 +18,12 @@ $base_path = $config['BASE_URL'];
         window.basePath = "<?= $base_path ?>";
     </script>
     
-    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/variables.css?v=2.8">
-    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/global.css?v=2.8">
-    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/animations.css?v=2.8">
-    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/navbar.css?v=2.8">
-    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/cards.css?v=2.8">
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/variables.css?v=2.9">
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/global.css?v=2.9">
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/animations.css?v=2.9">
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/navbar.css?v=2.9">
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/cards.css?v=2.9">
+    <link rel="stylesheet" href="<?= $base_path ?>/assets/css/footer.css?v=2.9">
     
     <!-- Optional: Ionicons or FontAwesome for icons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
