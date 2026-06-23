@@ -199,6 +199,10 @@ if ($type === 'tv' && isset($details['seasons'])) {
     white-space: normal;
     word-break: break-word;
     overflow-wrap: break-word;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
 }
 
 .server-btn:hover {
@@ -211,6 +215,38 @@ if ($type === 'tv' && isset($details['seasons'])) {
     border-color: transparent;
     color: white;
     box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #a0a0a0;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(160, 160, 160, 0.5);
+    transition: all var(--transition-fast);
+}
+
+.status-dot.online {
+    background: #2ec4b6;
+    box-shadow: 0 0 8px rgba(46, 196, 182, 0.8);
+}
+
+.status-dot.offline {
+    background: #e50914;
+    box-shadow: 0 0 8px rgba(229, 9, 20, 0.8);
+}
+
+.status-dot.testing {
+    background: #f5c518;
+    box-shadow: 0 0 8px rgba(245, 197, 24, 0.8);
+    animation: statusPulse 1s infinite alternate;
+}
+
+@keyframes statusPulse {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
 }
 
 .server-panel {
@@ -654,7 +690,8 @@ body.lights-off-active .player-container {
     .server-btn {
         padding: 8px 10px !important;
         font-size: 0.76rem !important;
-        text-align: center !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
         white-space: normal !important;
         word-break: break-word !important;
         overflow-wrap: break-word !important;
@@ -844,14 +881,38 @@ body.lights-off-active .player-container {
                         <span>If the video doesn't load, switch to another server</span>
                     </div>
                     <div class="server-grid">
-                        <button class="server-btn active" onclick="setServer(1)">Server 1 (VidSrc.to / Mirror)</button>
-                        <button class="server-btn" onclick="setServer(2)">Server 2 (VidSrc.me / Mirror)</button>
-                        <button class="server-btn" onclick="setServer(3)">Server 3 (VidSrc.cc)</button>
-                        <button class="server-btn" onclick="setServer(4)">Server 4 (VidLink.pro)</button>
-                        <button class="server-btn" onclick="setServer(5)">Server 5 (Embed.su)</button>
-                        <button class="server-btn" onclick="setServer(6)">Server 6 (AutoEmbed.cc)</button>
-                        <button class="server-btn" onclick="setServer(7)">Server 7 (MoviesAPI.club)</button>
-                        <button class="server-btn" onclick="setServer(8)">Server 8 (SuperEmbed)</button>
+                        <button class="server-btn active" onclick="setServer(1)">
+                            <span class="status-dot testing" id="status-dot-1"></span>
+                            Server 1 (VidSrc.to / Mirror)
+                        </button>
+                        <button class="server-btn" onclick="setServer(2)">
+                            <span class="status-dot testing" id="status-dot-2"></span>
+                            Server 2 (VidSrc.me / Mirror)
+                        </button>
+                        <button class="server-btn" onclick="setServer(3)">
+                            <span class="status-dot testing" id="status-dot-3"></span>
+                            Server 3 (VidSrc.cc)
+                        </button>
+                        <button class="server-btn" onclick="setServer(4)">
+                            <span class="status-dot testing" id="status-dot-4"></span>
+                            Server 4 (VidLink.pro)
+                        </button>
+                        <button class="server-btn" onclick="setServer(5)">
+                            <span class="status-dot testing" id="status-dot-5"></span>
+                            Server 5 (Embed.su)
+                        </button>
+                        <button class="server-btn" onclick="setServer(6)">
+                            <span class="status-dot testing" id="status-dot-6"></span>
+                            Server 6 (AutoEmbed.cc)
+                        </button>
+                        <button class="server-btn" onclick="setServer(7)">
+                            <span class="status-dot testing" id="status-dot-7"></span>
+                            Server 7 (MoviesAPI.club)
+                        </button>
+                        <button class="server-btn" onclick="setServer(8)">
+                            <span class="status-dot testing" id="status-dot-8"></span>
+                            Server 8 (SuperEmbed)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -960,38 +1021,38 @@ function getEmbedUrl(server, id, type, season, episode) {
     switch(server) {
         case 1: // VidSrc.to (Using active vsrc.su mirror)
             return type === 'movie' 
-                ? `https://vsrc.su/embed/movie/${id}` 
-                : `https://vsrc.su/embed/tv/${id}/${season}/${episode}`;
+                ? `https://vsrc.su/embed/movie/${id}?autoplay=1` 
+                : `https://vsrc.su/embed/tv/${id}/${season}/${episode}?autoplay=1`;
         case 2: // VidSrc.me (Using active vidsrcme.ru mirror)
             return type === 'movie'
-                ? `https://vidsrcme.ru/embed/movie?tmdb=${id}`
-                : `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
+                ? `https://vidsrcme.ru/embed/movie?tmdb=${id}&autoplay=1`
+                : `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${season}&episode=${episode}&autoplay=1`;
         case 3: // VidSrc.cc
             return type === 'movie'
-                ? `https://vidsrc.cc/v2/embed/movie/${id}`
-                : `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
+                ? `https://vidsrc.cc/v2/embed/movie/${id}?autoplay=1`
+                : `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?autoplay=1`;
         case 4: // VidLink.pro (Corrected path structure with crimson theme matching)
             return type === 'movie'
-                ? `https://vidlink.pro/movie/${id}?primaryColor=e50914`
-                : `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=e50914`;
+                ? `https://vidlink.pro/movie/${id}?primaryColor=e50914&autoplay=true`
+                : `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=e50914&autoplay=true`;
         case 5: // Embed.su
             return type === 'movie'
-                ? `https://embed.su/embed/movie/${id}`
-                : `https://embed.su/embed/tv/${id}/${season}/${episode}`;
+                ? `https://embed.su/embed/movie/${id}?autoplay=1`
+                : `https://embed.su/embed/tv/${id}/${season}/${episode}?autoplay=1`;
         case 6: // AutoEmbed (Updated autoembed.co -> autoembed.cc with correct endpoints)
             return type === 'movie'
-                ? `https://autoembed.cc/embed/movie/${id}`
-                : `https://autoembed.cc/embed/tv/${id}?s=${season}&e=${episode}`;
+                ? `https://autoembed.cc/embed/movie/${id}?autoplay=1`
+                : `https://autoembed.cc/embed/tv/${id}?s=${season}&e=${episode}&autoplay=1`;
         case 7: // MoviesAPI.club
             return type === 'movie'
-                ? `https://moviesapi.club/movie/${id}`
-                : `https://moviesapi.club/tv/${id}/${season}/${episode}`;
+                ? `https://moviesapi.club/movie/${id}?autoplay=1`
+                : `https://moviesapi.club/tv/${id}/${season}/${episode}?autoplay=1`;
         case 8: // SuperEmbed / MultiEmbed
             return type === 'movie'
-                ? `https://multiembed.to/embed.php?type=movie&tmdb=${id}`
-                : `https://multiembed.to/embed.php?type=tv&tmdb=${id}&s=${season}&e=${episode}`;
+                ? `https://multiembed.to/embed.php?type=movie&tmdb=${id}&autoplay=1`
+                : `https://multiembed.to/embed.php?type=tv&tmdb=${id}&s=${season}&e=${episode}&autoplay=1`;
         default:
-            return `https://vsrc.su/embed/movie/${id}`;
+            return `https://vsrc.su/embed/movie/${id}?autoplay=1`;
     }
 }
 
@@ -1022,6 +1083,43 @@ function setServer(srv) {
     });
     
     updatePlayer();
+}
+
+// Fetch server statuses from cURL multi checker
+async function checkServerStatuses() {
+    try {
+        const response = await fetch(`${window.location.origin}${basePath}/api/check_servers.php`);
+        const data = await response.json();
+        
+        let firstOnlineServer = null;
+        
+        for (const [id, info] of Object.entries(data)) {
+            const dot = document.getElementById(`status-dot-${id}`);
+            if (dot) {
+                dot.className = 'status-dot'; // reset classes
+                if (info.online) {
+                    dot.classList.add('online');
+                    if (!firstOnlineServer) {
+                        firstOnlineServer = parseInt(id);
+                    }
+                } else {
+                    dot.classList.add('offline');
+                }
+            }
+        }
+        
+        // If the current active server is offline, auto-switch to the first online server!
+        if (data[currentServer] && !data[currentServer].online && firstOnlineServer) {
+            console.log(`Default server ${currentServer} is offline. Auto-switching to first online server: ${firstOnlineServer}`);
+            setServer(firstOnlineServer);
+        }
+    } catch (error) {
+        console.error('Error checking server statuses:', error);
+        // On error, mark all as online/fallback to green so we don't lock the UI
+        document.querySelectorAll('.status-dot').forEach(dot => {
+            dot.className = 'status-dot online';
+        });
+    }
 }
 
 // Fetch TV season data dynamically via backend proxy
@@ -1323,7 +1421,55 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('MSFullscreenChange', onFullscreenChange);
     }
     
-    // Init states
+    // Listen for postMessage events from embedded video players for autoplaying the next episode
+    window.addEventListener('message', (event) => {
+        let data = event.data;
+        if (!data) return;
+        
+        let isEnded = false;
+        
+        // If data is a string, try to parse it as JSON in case it's a stringified object
+        if (typeof data === 'string') {
+            try {
+                const parsed = JSON.parse(data);
+                if (parsed && typeof parsed === 'object') {
+                    data = parsed;
+                }
+            } catch (e) {
+                // Not valid JSON, keep as string
+            }
+        }
+        
+        // Now check type of data
+        if (typeof data === 'string') {
+            const lowerData = data.toLowerCase();
+            if (lowerData === 'ended' || lowerData === 'vidlink_ended' || lowerData === 'vidsrc_ended') {
+                isEnded = true;
+            }
+        } else if (typeof data === 'object') {
+            // Check for VidLink's PLAYER_EVENT structure
+            if (data.type === 'PLAYER_EVENT' && data.data && data.data.event === 'ended') {
+                isEnded = true;
+            }
+            // Check for general properties (event, type, status)
+            else if (data.event === 'ended' || data.type === 'ended' || data.event === 'video_ended') {
+                isEnded = true;
+            }
+            // Nested data event checks
+            else if (data.data && (data.data.event === 'ended' || data.data.type === 'ended')) {
+                isEnded = true;
+            }
+        }
+        
+        if (isEnded) {
+            console.log('Video ended event received via postMessage. Auto-playing next episode...');
+            if (mediaType === 'tv') {
+                playNext();
+            }
+        }
+    });
+    
+    // Initialize TV states if TV show
     if (mediaType === 'tv') {
         const select = document.getElementById('seasonSelect');
         if (select) {
@@ -1331,6 +1477,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         loadSeasonEpisodes(currentSeason);
     }
+    
+    // Check all server statuses and automatically switch if active one is offline
+    checkServerStatuses();
     
     updatePlayer();
 });
