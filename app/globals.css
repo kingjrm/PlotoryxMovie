@@ -2948,13 +2948,14 @@ select option {
 
 .episode-row {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    gap: 0;
     padding: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     transition: all var(--transition-fast);
     cursor: pointer;
     text-align: left;
-    align-items: center;
+    align-items: stretch;
 }
 
 .episode-row:last-child {
@@ -3052,13 +3053,101 @@ select option {
     color: var(--text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
     min-width: 0;
     flex: 1;
 }
 
 .episode-row.active .episode-row-number-title {
     color: var(--accent);
+}
+
+.episode-row-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+}
+
+.episode-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.episode-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    padding: 4px;
+    border-radius: 4px;
+    outline: none;
+}
+
+.episode-action-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.episode-action-btn.watched-active {
+    color: #2ec4b6;
+    filter: drop-shadow(0 0 4px rgba(46, 196, 182, 0.4));
+}
+
+.episode-action-btn.watched-active:hover {
+    color: #26a69a;
+}
+
+.episode-action-btn.chevron-active {
+    transform: rotate(180deg);
+}
+
+.episode-details-panel {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    width: 100%;
+}
+
+.episode-details-meta {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.episode-details-overview {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .episode-row-duration {

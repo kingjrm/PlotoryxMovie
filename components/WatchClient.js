@@ -16,6 +16,33 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
   const [serverStatuses, setServerStatuses] = useState({});
   const playerWrapperRef = useRef(null);
 
+  const [autoplayNext, setAutoplayNext] = useState(true);
+  const [watchedEpisodes, setWatchedEpisodes] = useState({});
+  const [expandedEpisodeId, setExpandedEpisodeId] = useState(null);
+
+  // Load autoplay settings and watched list
+  useEffect(() => {
+    const autoplay = localStorage.getItem("autoplayNext");
+    if (autoplay !== null) {
+      setAutoplayNext(JSON.parse(autoplay));
+    }
+    const watched = JSON.parse(localStorage.getItem("watchedEpisodes")) || {};
+    setWatchedEpisodes(watched);
+  }, []);
+
+  // Auto mark current episode as watched
+  useEffect(() => {
+    if (type !== "tv") return;
+    const currentShowWatched = watchedEpisodes[id] || [];
+    if (!currentShowWatched.includes(currentEpisode)) {
+      const updated = [...currentShowWatched, currentEpisode];
+      const nextWatched = { ...watchedEpisodes, [id]: updated };
+      setWatchedEpisodes(nextWatched);
+      localStorage.setItem("watchedEpisodes", JSON.stringify(nextWatched));
+    }
+  }, [currentEpisode, id, type]);
+
+
   const title = details.title || details.name || "Unknown";
   const backdropPath = details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : "";
   const posterPath = details.poster_path ? `https://image.tmdb.org/t/p/w342${details.poster_path}` : "";
@@ -162,7 +189,7 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
         }
       }
 
-      if (isEnded && type === "tv") {
+      if (isEnded && type === "tv" && autoplayNext) {
         console.log("Autoplay next episode triggered.");
         playNext();
       }
@@ -402,10 +429,34 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
                           <span id="activeSeasonTitle" style={{ fontWeight: 700, fontFamily: "var(--font-family-title)", fontSize: "0.85rem" }}>
                             Season {currentSeason}
                           </span>
+                          <span id="episodeCountBadge" style={{ color: "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600, marginLeft: "4px" }}>
+                            ({episodes.length} eps)
+                          </span>
                         </div>
-                        <span id="episodeCountBadge" style={{ color: "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600 }}>
-                          {episodes.length} eps
-                        </span>
+                        
+                        {/* Premium Autoplay switch toggle */}
+                        <button
+                          onClick={() => {
+                            const nextVal = !autoplayNext;
+                            setAutoplayNext(nextVal);
+                            localStorage.setItem("autoplayNext", JSON.stringify(nextVal));
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: autoplayNext ? "var(--accent)" : "var(--text-secondary)",
+                            cursor: "pointer",
+                            fontSize: "1.15rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            transition: "color 0.2s ease"
+                          }}
+                          title="Autoplay Next Episode"
+                        >
+                          <ion-icon name={autoplayNext ? "flash" : "flash-off"}></ion-icon>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>Autoplay</span>
+                        </button>
                       </div>
                       <div className="episode-list" id="episodeList">
                         {episodesLoading ? (
@@ -421,6 +472,8 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
                             const epName = ep.name || `Episode ${epNum}`;
                             const duration = ep.runtime ? `${ep.runtime}m` : "45m";
                             const stillPath = ep.still_path ? `https://image.tmdb.org/t/p/w185${ep.still_path}` : "";
+                            const isWatched = (watchedEpisodes[id] || []).includes(epNum);
+                            const isExpanded = expandedEpisodeId === ep.id;
 
                             return (
                               <div
@@ -428,26 +481,86 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
                                 className={`episode-row ${epNum === currentEpisode ? "active" : ""}`}
                                 onClick={() => setCurrentEpisode(epNum)}
                               >
-                                <div className="episode-thumb-container">
-                                  {stillPath ? (
-                                    <img src={stillPath} alt={epName} loading="lazy" />
-                                  ) : (
-                                    <div style={{ width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", background: "#161827" }}>
-                                      <ion-icon name="play" style={{ fontSize: "1.5rem", color: "rgba(255,255,255,0.05)" }}></ion-icon>
+                                <div className="episode-row-header">
+                                  <div className="episode-thumb-container">
+                                    {stillPath ? (
+                                      <img src={stillPath} alt={epName} loading="lazy" />
+                                    ) : (
+                                      <div style={{ width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", background: "#161827" }}>
+                                        <ion-icon name="play" style={{ fontSize: "1.5rem", color: "rgba(255,255,255,0.05)" }}></ion-icon>
+                                      </div>
+                                    )}
+                                    <div className="episode-play-overlay">
+                                      <ion-icon name="play-sharp"></ion-icon>
                                     </div>
-                                  )}
-                                  <div className="episode-play-overlay">
-                                    <ion-icon name="play-sharp"></ion-icon>
+                                  </div>
+                                  <div className="episode-row-info">
+                                    <div className="episode-row-title-row">
+                                      <span className="episode-row-number-title">
+                                        {epNum}. {epName}
+                                      </span>
+                                      <span className="episode-row-duration">{duration}</span>
+                                    </div>
+                                    
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", width: "100%" }}>
+                                      <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+                                        {ep.air_date ? ep.air_date.substring(0, 4) : ""}
+                                      </span>
+                                      
+                                      <div className="episode-row-actions">
+                                        {/* Watched Toggle Checkmark */}
+                                        <button
+                                          className={`episode-action-btn ${isWatched ? "watched-active" : ""}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const showWatched = watchedEpisodes[id] || [];
+                                            let updated;
+                                            if (showWatched.includes(epNum)) {
+                                              updated = showWatched.filter(n => n !== epNum);
+                                            } else {
+                                              updated = [...showWatched, epNum];
+                                            }
+                                            const nextWatched = { ...watchedEpisodes, [id]: updated };
+                                            setWatchedEpisodes(nextWatched);
+                                            localStorage.setItem("watchedEpisodes", JSON.stringify(nextWatched));
+                                          }}
+                                          title={isWatched ? "Mark Unwatched" : "Mark Watched"}
+                                        >
+                                          <ion-icon name={isWatched ? "checkmark-circle" : "checkmark-circle-outline"}></ion-icon>
+                                        </button>
+
+                                        {/* Overview Description Chevron Toggle */}
+                                        {ep.overview && (
+                                          <button
+                                            className={`episode-action-btn ${isExpanded ? "chevron-active" : ""}`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setExpandedEpisodeId(isExpanded ? null : ep.id);
+                                            }}
+                                            title="View Synopsis"
+                                          >
+                                            <ion-icon name="chevron-down-outline"></ion-icon>
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="episode-row-info">
-                                  <div className="episode-row-title-row">
-                                    <span className="episode-row-number-title">
-                                      {epNum}. {epName}
-                                    </span>
-                                    <span className="episode-row-duration">{duration}</span>
+
+                                {/* Expanded Overview Synopsis Card */}
+                                {isExpanded && ep.overview && (
+                                  <div className="episode-details-panel">
+                                    <div className="episode-details-meta">
+                                      <span>Aired: {ep.air_date ? new Date(ep.air_date).toLocaleDateString(undefined, {month: "short", day: "numeric", year: "numeric"}) : "N/A"}</span>
+                                      {ep.vote_average > 0 && (
+                                        <span style={{ color: "#ffb12a", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                                          <ion-icon name="star"></ion-icon> {ep.vote_average.toFixed(1)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="episode-details-overview">{ep.overview}</p>
                                   </div>
-                                </div>
+                                )}
                               </div>
                             );
                           })
