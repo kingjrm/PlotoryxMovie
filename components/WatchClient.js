@@ -58,7 +58,14 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
   useEffect(() => {
     fetch("/api/check_servers")
       .then(r => r.json())
-      .then(d => setServerStatuses(d))
+      .then(d => {
+        setServerStatuses(d);
+        // Auto-select first online server
+        const firstOnline = Object.entries(d)
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .find(([, info]) => info.online);
+        if (firstOnline) setCurrentServer(Number(firstOnline[0]));
+      })
       .catch(() => {});
   }, []);
 
@@ -311,6 +318,46 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
 
       </div>
 
+      {/* -- PICKS FOR YOU -- */}
+      {details.recommendations?.results?.filter(r => r.backdrop_path).length > 0 && (
+        <div className="wp-picks">
+          <div className="wp-picks-header">
+            <span className="wp-picks-title">Picks for You</span>
+            <span className="wp-picks-sub">More titles you might enjoy</span>
+          </div>
+          <div className="wp-picks-grid">
+            {details.recommendations.results
+              .filter(r => r.backdrop_path)
+              .slice(0, 12)
+              .map(item => {
+                const recTitle = item.title || item.name;
+                const recType = item.title ? "movie" : "tv";
+                const recYear = (item.release_date || item.first_air_date || "").substring(0, 4);
+                const recRating = item.vote_average ? (Math.round(item.vote_average * 10) / 10).toFixed(1) : null;
+                const recBackdrop = `https://image.tmdb.org/t/p/w500${item.backdrop_path}`;
+                return (
+                  <Link key={item.id} href={`/details?id=${item.id}&type=${recType}`} className="wp-pick-card">
+                    <div className="wp-pick-thumb">
+                      <img src={recBackdrop} alt={recTitle} loading="lazy" />
+                      <div className="wp-pick-overlay">
+                        <ion-icon name="play-circle-outline"></ion-icon>
+                      </div>
+                    </div>
+                    <div className="wp-pick-info">
+                      <div className="wp-pick-name">{recTitle}</div>
+                      <div className="wp-pick-meta">
+                        {recRating && <span className="wp-pick-rating">⭐ {recRating}</span>}
+                        {recYear && <span>{recYear}</span>}
+                        <span className="wp-pick-type">{recType === "movie" ? "Movie" : "TV"}</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .wp-page {
           display: flex;
@@ -441,9 +488,12 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
         /* Player */
         .wp-player-wrap {
           width: 100%;
+          max-width: 960px;
+          margin: 0 auto;
           aspect-ratio: 16/9;
           background: #000;
           position: relative;
+          overflow: hidden;
         }
         .wp-player-iframe {
           width: 100%;
@@ -741,6 +791,94 @@ export default function WatchClient({ details, id, type, initialSeason, initialE
           .wp-seasons-col { width: 130px; }
           .wp-ep-thumb { flex: 0 0 100px; }
           .wp-drawer-panel { max-height: 90vh; }
+        }
+        /* Picks for You */
+        .wp-picks {
+          background: #080808;
+          padding: 28px 28px 40px;
+          border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .wp-picks-header {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          margin-bottom: 18px;
+        }
+        .wp-picks-title {
+          font-size: 1.1rem;
+          font-weight: 800;
+          color: white;
+          font-family: 'Bebas Neue', sans-serif;
+          letter-spacing: 1.5px;
+        }
+        .wp-picks-sub {
+          font-size: 0.78rem;
+          color: var(--text-secondary);
+        }
+        .wp-picks-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 14px;
+        }
+        .wp-pick-card {
+          border-radius: 10px;
+          overflow: hidden;
+          background: #111;
+          border: 1px solid rgba(255,255,255,0.06);
+          text-decoration: none;
+          transition: transform 0.2s, border-color 0.2s;
+        }
+        .wp-pick-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.16); }
+        .wp-pick-thumb {
+          position: relative;
+          aspect-ratio: 16/9;
+          overflow: hidden;
+        }
+        .wp-pick-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .wp-pick-card:hover .wp-pick-thumb img { transform: scale(1.05); }
+        .wp-pick-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5rem;
+          color: white;
+          opacity: 0;
+          transition: opacity 0.2s;
+        }
+        .wp-pick-card:hover .wp-pick-overlay { opacity: 1; }
+        .wp-pick-info { padding: 10px 12px 12px; }
+        .wp-pick-name {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: white;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .wp-pick-meta {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 4px;
+          font-size: 0.72rem;
+          color: var(--text-secondary);
+        }
+        .wp-pick-rating { color: #ffb12a; }
+        .wp-pick-type {
+          background: rgba(229,9,20,0.12);
+          color: var(--accent);
+          padding: 1px 5px;
+          border-radius: 3px;
+          font-size: 0.62rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        @media (max-width: 600px) {
+          .wp-picks { padding: 20px 16px 30px; }
+          .wp-picks-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
       `}</style>
     </>
