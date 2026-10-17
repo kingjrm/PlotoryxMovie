@@ -14,12 +14,38 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
 
   // Surprise Me State
   const [rouletteType, setRouletteType] = useState("movie");
-  const [rouletteGenre, setRouletteGenre] = useState("");
+  const [rouletteGenres, setRouletteGenres] = useState([]);
+  const [rouletteRating, setRouletteRating] = useState("");
+  const [rouletteLang, setRouletteLang] = useState("");
+  const [shuffleOpen, setShuffleOpen] = useState(false); // FAB modal open
   const [rouletteActive, setRouletteActive] = useState(false);
   const [shuffling, setShuffling] = useState(false);
   const [shuffleWinner, setShuffleWinner] = useState(null);
   const [shuffleTempItem, setShuffleTempItem] = useState(null);
   const [shuffleLoading, setShuffleLoading] = useState(false);
+
+  const ALL_GENRES = [
+    { id: "28",    label: "Action" },
+    { id: "35",    label: "Comedy" },
+    { id: "18",    label: "Drama" },
+    { id: "27",    label: "Horror" },
+    { id: "878",   label: "Sci-Fi" },
+    { id: "53",    label: "Thriller" },
+    { id: "10749",label: "Romance" },
+    { id: "16",    label: "Animation" },
+    { id: "80",    label: "Crime" },
+    { id: "12",    label: "Adventure" },
+    { id: "14",    label: "Fantasy" },
+    { id: "9648",  label: "Mystery" },
+    { id: "10751",label: "Family" },
+    { id: "36",    label: "History" },
+  ];
+
+  const toggleGenreChip = (id) => {
+    setRouletteGenres(prev =>
+      prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]
+    );
+  };
 
   const heroes = trending?.results?.slice(0, 5) || [];
 
@@ -66,18 +92,23 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
   const triggerRoulette = async () => {
     setShuffleLoading(true);
     const type = rouletteType || "movie";
-    let genre = rouletteGenre || "";
 
+    // Map movie genre IDs to TV equivalents where needed
+    let genres = [...rouletteGenres];
     if (type === "tv") {
-      if (genre === "28" || genre === "12") {
-        genre = "10759"; // Action & Adventure TV
-      } else if (genre === "878") {
-        genre = "10765"; // Sci-Fi & Fantasy TV
-      }
+      genres = genres.map(g => {
+        if (g === "28" || g === "12") return "10759";
+        if (g === "878") return "10765";
+        return g;
+      });
     }
+    const genreParam = genres.join(",");
 
-    const randomPage = Math.floor(Math.random() * 10) + 1; // variety page 1-10
-    const apiPath = `/api/discover?type=${type}&genre=${genre}&page=${randomPage}`;
+    const randomPage = Math.floor(Math.random() * 10) + 1;
+    let apiPath = `/api/discover?type=${type}&page=${randomPage}`;
+    if (genreParam) apiPath += `&genre=${genreParam}`;
+    if (rouletteRating) apiPath += `&min_rating=${rouletteRating}`;
+    if (rouletteLang) apiPath += `&language=${rouletteLang}`;
 
     try {
       const res = await fetch(apiPath);
@@ -180,11 +211,9 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
                 className={`hero-slide ${index === currentSlide ? "active" : ""}`}
                 style={{ backgroundImage: `url('${itemBg}')` }}
               >
-                <div className="container hero-content">
-                  <div className="hero-badge">
-                    <ion-icon name="flame"></ion-icon> TRENDING TODAY
-                  </div>
-                  <h1 className="hero-title">{itemTitle}</h1>
+                {/* Bottom-left content overlay */}
+                <div className="hero-slide-overlay" />
+                <div className="hero-content-bottom">
                   <div className="hero-meta-info">
                     {itemRating && (
                       <span className="rating">
@@ -194,19 +223,14 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
                     {itemYear && <span className="year">{itemYear}</span>}
                     <span className="type">{itemType === "movie" ? "Movie" : "TV Series"}</span>
                   </div>
-                  <p className="hero-desc">{itemOverview}</p>
-                  <div className="hero-actions" style={{ display: "flex", gap: "15px" }}>
-                    <Link
-                      href={`/watch?id=${item.id}&type=${itemType}`}
-                      className="btn netflix-btn-play"
-                    >
-                      <ion-icon name="play" style={{ fontSize: "1.4rem" }}></ion-icon> Play
+                  <h1 className="hero-title-bebas">{itemTitle}</h1>
+                  <p className="hero-desc">{itemOverview.substring(0, 180)}{itemOverview.length > 180 ? "..." : ""}</p>
+                  <div className="hero-actions">
+                    <Link href={`/watch?id=${item.id}&type=${itemType}`} className="btn netflix-btn-play">
+                      <ion-icon name="play" style={{ fontSize: "1.3rem" }}></ion-icon> Play
                     </Link>
-                    <Link
-                      href={`/details?id=${item.id}&type=${itemType}`}
-                      className="btn netflix-btn-info"
-                    >
-                      <ion-icon name="information-circle-outline" style={{ fontSize: "1.4rem" }}></ion-icon> More Info
+                    <Link href={`/details?id=${item.id}&type=${itemType}`} className="btn netflix-btn-info">
+                      <ion-icon name="information-circle-outline" style={{ fontSize: "1.3rem" }}></ion-icon> More Info
                     </Link>
                   </div>
                 </div>
@@ -229,7 +253,10 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
       {/* Continue Watching Section */}
       {continueWatchingList.length > 0 && (
         <div className="container" id="continueWatchingSection" style={{ paddingTop: "10px" }}>
-          <h2 className="section-title">Continue Watching</h2>
+          <div className="section-heading">
+            <h2 className="section-title">Continue Watching</h2>
+            <p className="section-subtitle">Pick up where you left off</p>
+          </div>
           <div className="movie-slider-wrapper">
             <button className="slider-btn prev" aria-label="Slide Left" onClick={handleScrollLeft}>
               <ion-icon name="chevron-back-outline"></ion-icon>
@@ -286,113 +313,18 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
         </div>
       )}
 
-      {/* Popular Genres Section */}
-      <div className="container" style={{ marginTop: "30px" }}>
-        <h2 className="section-title">Popular Genres</h2>
-        <div style={{ display: "flex", gap: "14px", overflowX: "auto", padding: "10px 4px 20px", scrollbarWidth: "none", msOverflowStyle: "none" }}>
-          <Link href="/movies?genre=28" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(229, 9, 20, 0.15) 0%, rgba(229, 9, 20, 0.02) 100%)", borderColor: "rgba(229, 9, 20, 0.2)" }}>
-            <ion-icon name="flame-outline" style={{ fontSize: "1.5rem", color: "#e50914", marginRight: "8px" }}></ion-icon>
-            <span>Action</span>
-          </Link>
-          <Link href="/movies?genre=35" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(245, 197, 24, 0.15) 0%, rgba(245, 197, 24, 0.02) 100%)", borderColor: "rgba(245, 197, 24, 0.2)" }}>
-            <ion-icon name="happy-outline" style={{ fontSize: "1.5rem", color: "#f5c518", marginRight: "8px" }}></ion-icon>
-            <span>Comedy</span>
-          </Link>
-          <Link href="/movies?genre=878" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(26, 115, 232, 0.15) 0%, rgba(26, 115, 232, 0.02) 100%)", borderColor: "rgba(26, 115, 232, 0.2)" }}>
-            <ion-icon name="planet-outline" style={{ fontSize: "1.5rem", color: "#1a73e8", marginRight: "8px" }}></ion-icon>
-            <span>Sci-Fi</span>
-          </Link>
-          <Link href="/movies?genre=18" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.02) 100%)", borderColor: "rgba(168, 85, 247, 0.2)" }}>
-            <ion-icon name="sad-outline" style={{ fontSize: "1.5rem", color: "#a855f7", marginRight: "8px" }}></ion-icon>
-            <span>Drama</span>
-          </Link>
-          <Link href="/movies?genre=53" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(236, 72, 153, 0.02) 100%)", borderColor: "rgba(236, 72, 153, 0.2)" }}>
-            <ion-icon name="skull-outline" style={{ fontSize: "1.5rem", color: "#ec4899", marginRight: "8px" }}></ion-icon>
-            <span>Thriller</span>
-          </Link>
-          <Link href="/movies?genre=27" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.02) 100%)", borderColor: "rgba(239, 68, 68, 0.2)" }}>
-            <ion-icon name="thunderstorm-outline" style={{ fontSize: "1.5rem", color: "#ef4444", marginRight: "8px" }}></ion-icon>
-            <span>Horror</span>
-          </Link>
-          <Link href="/movies?genre=10749" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.02) 100%)", borderColor: "rgba(244, 63, 94, 0.2)" }}>
-            <ion-icon name="heart-outline" style={{ fontSize: "1.5rem", color: "#f43f5e", marginRight: "8px" }}></ion-icon>
-            <span>Romance</span>
-          </Link>
-          <Link href="/movies?genre=16" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.02) 100%)", borderColor: "rgba(16, 185, 129, 0.2)" }}>
-            <ion-icon name="color-palette-outline" style={{ fontSize: "1.5rem", color: "#10b981", marginRight: "8px" }}></ion-icon>
-            <span>Animation</span>
-          </Link>
-        </div>
-      </div>
 
-      {/* Surprise Me Section */}
-      <div className="container" style={{ marginTop: "40px", marginBottom: "40px" }}>
-        <div className="shuffle-banner">
-          <div className="shuffle-blur-circle"></div>
-          <div className="shuffle-container">
-            <div className="shuffle-info">
-              <div className="shuffle-badge">
-                <span className="pulse-dot"></span>
-                <span>Plotoryx Shuffle</span>
-              </div>
-              <h2 className="shuffle-title">Can't decide what to watch?</h2>
-              <p className="shuffle-desc">Select your mood filters and let our system find the perfect movie or television series recommendation instantly!</p>
-            </div>
-
-            <div className="shuffle-form-wrapper">
-              <div className="shuffle-form-row">
-                <div className="shuffle-field">
-                  <label>
-                    <ion-icon name="videocam-outline"></ion-icon> Type
-                  </label>
-                  <select id="rouletteType" value={rouletteType} onChange={(e) => setRouletteType(e.target.value)}>
-                    <option value="movie">Movies</option>
-                    <option value="tv">TV Shows</option>
-                  </select>
-                </div>
-                <div className="shuffle-field">
-                  <label>
-                    <ion-icon name="options-outline"></ion-icon> Genre
-                  </label>
-                  <select id="rouletteGenre" value={rouletteGenre} onChange={(e) => setRouletteGenre(e.target.value)}>
-                    <option value="">All Genres</option>
-                    <option value="28">Action</option>
-                    <option value="12">Adventure</option>
-                    <option value="16">Animation</option>
-                    <option value="35">Comedy</option>
-                    <option value="80">Crime</option>
-                    <option value="18">Drama</option>
-                    <option value="27">Horror</option>
-                    <option value="9648">Mystery</option>
-                    <option value="10749">Romance</option>
-                    <option value="878">Sci-Fi</option>
-                    <option value="53">Thriller</option>
-                  </select>
-                </div>
-              </div>
-
-              <button id="shuffleBtn" className="shuffle-btn" onClick={triggerRoulette} disabled={shuffleLoading}>
-                {shuffleLoading ? (
-                  <>
-                    <ion-icon name="sync-outline" className="spin" style={{ fontSize: "1.2rem", marginRight: "6px" }}></ion-icon>
-                    <span>Shuffling...</span>
-                  </>
-                ) : (
-                  <>
-                    <ion-icon name="shuffle-outline"></ion-icon>
-                    <span>Surprise Me</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Movie Content Sections */}
       <div className="container">
-        {/* Trending Today Slider */}
-        <h2 className="section-title">Trending Today</h2>
+        {/* Trending Today */}
+        <div className="section-heading">
+          <h2 className="section-title">
+            Trending Today
+            <Link href="/trending" className="section-arrow-link">See all <ion-icon name="chevron-forward-outline"></ion-icon></Link>
+          </h2>
+          <p className="section-subtitle">Hottest titles right now</p>
+        </div>
         <div className="movie-slider-wrapper">
           <button className="slider-btn prev" aria-label="Slide Left" onClick={handleScrollLeft}>
             <ion-icon name="chevron-back-outline"></ion-icon>
@@ -407,8 +339,14 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
           </button>
         </div>
 
-        {/* Popular Movies Slider */}
-        <h2 className="section-title">Popular Movies</h2>
+        {/* Popular Movies */}
+        <div className="section-heading">
+          <h2 className="section-title">
+            Popular Movies
+            <Link href="/movies" className="section-arrow-link">See all <ion-icon name="chevron-forward-outline"></ion-icon></Link>
+          </h2>
+          <p className="section-subtitle">Top-rated films streaming now</p>
+        </div>
         <div className="movie-slider-wrapper">
           <button className="slider-btn prev" aria-label="Slide Left" onClick={handleScrollLeft}>
             <ion-icon name="chevron-back-outline"></ion-icon>
@@ -423,8 +361,14 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
           </button>
         </div>
 
-        {/* Top Rated TV Shows Slider */}
-        <h2 className="section-title">Top Rated TV Shows</h2>
+        {/* Top Rated TV Shows */}
+        <div className="section-heading">
+          <h2 className="section-title">
+            Top Rated TV Shows
+            <Link href="/tv" className="section-arrow-link">See all <ion-icon name="chevron-forward-outline"></ion-icon></Link>
+          </h2>
+          <p className="section-subtitle">Binge-worthy series on demand</p>
+        </div>
         <div className="movie-slider-wrapper">
           <button className="slider-btn prev" aria-label="Slide Left" onClick={handleScrollLeft}>
             <ion-icon name="chevron-back-outline"></ion-icon>
@@ -437,6 +381,46 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
           <button className="slider-btn next" aria-label="Slide Right" onClick={handleScrollRight}>
             <ion-icon name="chevron-forward-outline"></ion-icon>
           </button>
+        </div>
+
+        {/* Popular Genres — moved below content rows */}
+        <div className="section-heading">
+          <h2 className="section-title">Browse by Genre</h2>
+          <p className="section-subtitle">Find something in your mood</p>
+        </div>
+        <div style={{ display: "flex", gap: "12px", overflowX: "auto", padding: "4px 4px 20px", scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <Link href="/movies?genre=28" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(229, 9, 20, 0.12) 0%, rgba(229, 9, 20, 0.02) 100%)", borderColor: "rgba(229, 9, 20, 0.18)" }}>
+            <ion-icon name="flame-outline" style={{ fontSize: "1.4rem", color: "#e50914", marginRight: "8px" }}></ion-icon>
+            <span>Action</span>
+          </Link>
+          <Link href="/movies?genre=35" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(245, 197, 24, 0.12) 0%, rgba(245, 197, 24, 0.02) 100%)", borderColor: "rgba(245, 197, 24, 0.18)" }}>
+            <ion-icon name="happy-outline" style={{ fontSize: "1.4rem", color: "#f5c518", marginRight: "8px" }}></ion-icon>
+            <span>Comedy</span>
+          </Link>
+          <Link href="/movies?genre=878" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(26, 115, 232, 0.12) 0%, rgba(26, 115, 232, 0.02) 100%)", borderColor: "rgba(26, 115, 232, 0.18)" }}>
+            <ion-icon name="planet-outline" style={{ fontSize: "1.4rem", color: "#1a73e8", marginRight: "8px" }}></ion-icon>
+            <span>Sci-Fi</span>
+          </Link>
+          <Link href="/movies?genre=18" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.02) 100%)", borderColor: "rgba(168, 85, 247, 0.18)" }}>
+            <ion-icon name="sad-outline" style={{ fontSize: "1.4rem", color: "#a855f7", marginRight: "8px" }}></ion-icon>
+            <span>Drama</span>
+          </Link>
+          <Link href="/movies?genre=53" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(236, 72, 153, 0.02) 100%)", borderColor: "rgba(236, 72, 153, 0.18)" }}>
+            <ion-icon name="skull-outline" style={{ fontSize: "1.4rem", color: "#ec4899", marginRight: "8px" }}></ion-icon>
+            <span>Thriller</span>
+          </Link>
+          <Link href="/movies?genre=27" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.02) 100%)", borderColor: "rgba(239, 68, 68, 0.18)" }}>
+            <ion-icon name="thunderstorm-outline" style={{ fontSize: "1.4rem", color: "#ef4444", marginRight: "8px" }}></ion-icon>
+            <span>Horror</span>
+          </Link>
+          <Link href="/movies?genre=10749" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, rgba(244, 63, 94, 0.02) 100%)", borderColor: "rgba(244, 63, 94, 0.18)" }}>
+            <ion-icon name="heart-outline" style={{ fontSize: "1.4rem", color: "#f43f5e", marginRight: "8px" }}></ion-icon>
+            <span>Romance</span>
+          </Link>
+          <Link href="/movies?genre=16" className="genre-card" style={{ background: "linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.02) 100%)", borderColor: "rgba(16, 185, 129, 0.18)" }}>
+            <ion-icon name="color-palette-outline" style={{ fontSize: "1.4rem", color: "#10b981", marginRight: "8px" }}></ion-icon>
+            <span>Animation</span>
+          </Link>
         </div>
       </div>
 
@@ -507,6 +491,87 @@ export default function HomePageClient({ trending, popularMovies, topTv }) {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ---- FLOATING SHUFFLE FAB ---- */}
+      {/* FAB Button */}
+      <button
+        className={`shuffle-fab ${shuffleOpen ? "fab-open" : ""}`}
+        onClick={() => setShuffleOpen(o => !o)}
+        title="Surprise Me"
+        aria-label="Open Shuffle"
+      >
+        <ion-icon name={shuffleOpen ? "close-outline" : "shuffle-outline"}></ion-icon>
+      </button>
+
+      {/* FAB Tooltip label */}
+      {!shuffleOpen && (
+        <div className="shuffle-fab-label">Surprise Me</div>
+      )}
+
+      {/* Shuffle Popup Panel */}
+      {shuffleOpen && (
+        <div className="shuffle-popup">
+          <div className="shuffle-popup-header">
+            <div>
+              <div className="shuffle-popup-title">Plotoryx Shuffle</div>
+              <div className="shuffle-popup-sub">Pick your vibe, we'll find the title</div>
+            </div>
+          </div>
+
+          {/* Type */}
+          <div className="shuffle-popup-section">
+            <div className="shuffle-popup-label">Type</div>
+            <div className="filter-chip-row">
+              {[{ v: "movie", l: "🎬 Movies" }, { v: "tv", l: "📺 TV Shows" }].map(({ v, l }) => (
+                <span key={v} className={`filter-chip ${rouletteType === v ? "selected" : ""}`} onClick={() => setRouletteType(v)}>{l}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Genres */}
+          <div className="shuffle-popup-section">
+            <div className="shuffle-popup-label">Genres <span style={{ opacity: 0.45, fontSize: "0.7rem" }}>pick multiple</span></div>
+            <div className="shuffle-genre-grid">
+              {ALL_GENRES.map(({ id, label }) => (
+                <span key={id} className={`genre-chip ${rouletteGenres.includes(id) ? "selected" : ""}`} onClick={() => toggleGenreChip(id)}>{label}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Rating */}
+          <div className="shuffle-popup-section">
+            <div className="shuffle-popup-label">Min Rating</div>
+            <div className="filter-chip-row">
+              {[{ v: "", l: "Any" }, { v: "6", l: "6+ ⭐" }, { v: "7", l: "7+ ⭐" }, { v: "8", l: "8+ ⭐" }].map(({ v, l }) => (
+                <span key={v} className={`filter-chip ${rouletteRating === v ? "selected" : ""}`} onClick={() => setRouletteRating(v)}>{l}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Language */}
+          <div className="shuffle-popup-section">
+            <div className="shuffle-popup-label">Language</div>
+            <div className="filter-chip-row">
+              {[
+                { v: "", l: "Any" }, { v: "en", l: "🇺🇸 EN" }, { v: "ko", l: "🇰🇷 KR" },
+                { v: "ja", l: "🇯🇵 JP" }, { v: "es", l: "🇪🇸 ES" }, { v: "fr", l: "🇫🇷 FR" },
+              ].map(({ v, l }) => (
+                <span key={v} className={`filter-chip ${rouletteLang === v ? "selected" : ""}`} onClick={() => setRouletteLang(v)}>{l}</span>
+              ))}
+            </div>
+          </div>
+
+          <button
+            className="shuffle-popup-go"
+            onClick={() => { setShuffleOpen(false); triggerRoulette(); }}
+            disabled={shuffleLoading}
+          >
+            {shuffleLoading
+              ? <><ion-icon name="sync-outline" className="spin"></ion-icon> Shuffling...</>
+              : <><ion-icon name="shuffle-outline"></ion-icon> Surprise Me</>}
+          </button>
         </div>
       )}
     </>

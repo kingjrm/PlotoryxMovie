@@ -14,47 +14,40 @@ export default function Navbar() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchTab, setSearchTab] = useState("All");
+  const [recentSearches, setRecentSearches] = useState([]);
 
   const searchInputRef = useRef(null);
   const liveResultsRef = useRef(null);
   const searchBarRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // Monitor scroll for header background opacity
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 30) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Keyboard shortcut 's' to focus search
+  useEffect(() => {
+    setRecentSearches(JSON.parse(localStorage.getItem("recentSearches")) || []);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "s" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
         e.preventDefault();
-        if (searchInputRef.current) {
-          searchInputRef.current.focus();
-        }
+        searchInputRef.current?.focus();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Click outside search results to close
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
-        liveResultsRef.current &&
-        !liveResultsRef.current.contains(e.target) &&
-        searchBarRef.current &&
-        !searchBarRef.current.contains(e.target)
+        liveResultsRef.current && !liveResultsRef.current.contains(e.target) &&
+        searchBarRef.current && !searchBarRef.current.contains(e.target)
       ) {
         setSearchFocused(false);
       }
@@ -63,30 +56,20 @@ export default function Navbar() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Fetch search results on query change
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (searchQuery.trim().length > 2) {
       searchTimeoutRef.current = setTimeout(async () => {
         setSearchLoading(true);
         try {
-          const res = await fetch(
-            `/api/search?q=${encodeURIComponent(searchQuery)}`
-          );
+          const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
           const data = await res.json();
           if (data.results && data.results.length > 0) {
-            const filtered = data.results
-              .filter((item) => item.media_type !== "person")
-              .slice(0, 5);
-            setSearchResults(filtered);
+            setSearchResults(data.results.filter((i) => i.media_type !== "person").slice(0, 5));
           } else {
             setSearchResults([]);
           }
         } catch (err) {
-          console.error("Search error:", err);
           setSearchResults([]);
         } finally {
           setSearchLoading(false);
@@ -95,101 +78,78 @@ export default function Navbar() {
     } else {
       setSearchResults([]);
     }
-
     return () => clearTimeout(searchTimeoutRef.current);
   }, [searchQuery]);
+
+  const saveRecent = (q) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    const prev = JSON.parse(localStorage.getItem("recentSearches")) || [];
+    const next = [trimmed, ...prev.filter(r => r !== trimmed)].slice(0, 6);
+    localStorage.setItem("recentSearches", JSON.stringify(next));
+    setRecentSearches(next);
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      saveRecent(searchQuery);
       setSearchFocused(false);
       setMobileSearchOpen(false);
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const handleSearchItemClick = () => {
+  const handleSearchItemClick = (title) => {
+    if (title) saveRecent(title);
     setSearchFocused(false);
     setMobileSearchOpen(false);
     setSearchQuery("");
   };
 
+  const navLinks = [
+    { href: "/",          label: "Home",      icon: "home-outline",        iconActive: "home" },
+    { href: "/movies",    label: "Movies",    icon: "film-outline",        iconActive: "film" },
+    { href: "/tv",        label: "Shows",     icon: "tv-outline",          iconActive: "tv" },
+    { href: "/genres",    label: "Genres",    icon: "apps-outline",        iconActive: "apps" },
+    { href: "/trending",  label: "Trending",  icon: "trending-up-outline", iconActive: "trending-up" },
+    { href: "/favorites", label: "Watchlist", icon: "bookmark-outline",    iconActive: "bookmark" },
+  ];
+
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`} id="navbar">
       <div className="container nav-container">
-        {/* Brand */}
         <Link href="/" className="brand" onClick={() => setMobileMenuOpen(false)}>
           <img src="/Plotoryx-Logo.png" alt="Plotoryx" className="brand-logo-img" />
           <span>Plotoryx</span>
         </Link>
 
-        {/* Navigation Links */}
-        <ul className={`nav-links ${mobileMenuOpen ? "active" : ""}`} id="navLinks">
-          <li>
-            <Link
-              href="/"
-              className={pathname === "/" ? "active" : ""}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/movies"
-              className={pathname === "/movies" ? "active" : ""}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Movies
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/tv"
-              className={pathname === "/tv" ? "active" : ""}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              TV Shows
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/genres"
-              className={pathname === "/genres" ? "active" : ""}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Genres
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/trending"
-              className={pathname === "/trending" ? "active" : ""}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Trending
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/favorites"
-              className={pathname === "/favorites" ? "active" : ""}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Watchlist
-            </Link>
-          </li>
-        </ul>
+        <div className={`nav-links-pill ${mobileMenuOpen ? "active" : ""}`} id="navLinksPill">
+          <ul className="nav-links" id="navLinks">
+            {navLinks.map(({ href, label, icon, iconActive }) => {
+              const isActive = pathname === href;
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className={isActive ? "active" : ""}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <ion-icon name={isActive ? iconActive : icon}></ion-icon>
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
-        {/* Actions */}
         <div className="nav-actions">
-          {/* Search Bar */}
           <div
             className={`search-bar ${mobileSearchOpen ? "active" : ""}`}
             id="searchBar"
             ref={searchBarRef}
           >
-            {/* Mobile search button */}
             <button
               type="button"
               className="mobile-search-trigger"
@@ -203,7 +163,6 @@ export default function Navbar() {
               <span>Search</span>
             </button>
 
-            {/* Inline/Overlay search form */}
             <form onSubmit={handleSearchSubmit} id="searchForm">
               <ion-icon name="search-outline" class="search-input-icon"></ion-icon>
               <input
@@ -220,76 +179,80 @@ export default function Navbar() {
                 type="button"
                 className="close-search-btn"
                 id="closeSearchBtn"
-                onClick={() => {
-                  setMobileSearchOpen(false);
-                  setSearchQuery("");
-                  setSearchFocused(false);
-                }}
+                onClick={() => { setMobileSearchOpen(false); setSearchQuery(""); setSearchFocused(false); }}
               >
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </form>
 
-            {/* Live Autocomplete Results */}
-            {searchFocused && searchQuery.trim().length > 2 && (
-              <div
-                className="live-search-results"
-                id="liveSearchResults"
-                ref={liveResultsRef}
-                style={{ display: "block" }}
-              >
-                {searchLoading && (
-                  <p style={{ padding: "10px", textAlign: "center", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-                    Loading...
-                  </p>
-                )}
-                {!searchLoading && searchResults.length === 0 && (
-                  <p style={{ padding: "10px", textAlign: "center", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-                    No results found
-                  </p>
-                )}
-                {!searchLoading &&
-                  searchResults.map((item) => {
-                    const title = item.title || item.name;
-                    const type = item.title ? "movie" : "tv";
-                    const year = (item.release_date || item.first_air_date || "").substring(0, 4) || "N/A";
-                    const rating = item.vote_average ? Math.round(item.vote_average * 10) / 10 : "N/A";
-                    const posterUrl = item.poster_path
-                      ? `https://image.tmdb.org/t/p/w92${item.poster_path}`
-                      : "";
+            {searchFocused && (
+              <div className="search-dropdown" ref={liveResultsRef}>
+                {/* Filter tabs */}
+                <div className="search-tabs">
+                  {["All", "Movies", "Shows", "Anime"].map(tab => (
+                    <button
+                      key={tab}
+                      className={`search-tab-btn ${searchTab === tab ? "active" : ""}`}
+                      onClick={() => setSearchTab(tab)}
+                    >{tab}</button>
+                  ))}
+                </div>
 
-                    return (
-                      <Link
-                        key={item.id}
-                        href={`/details?id=${item.id}&type=${type}`}
-                        className="search-item"
-                        onClick={handleSearchItemClick}
-                      >
-                        {posterUrl ? (
-                          <img src={posterUrl} alt={title} />
-                        ) : (
-                          <div style={{ width: "40px", height: "56px", display: "flex", justifyContent: "center", alignItems: "center", background: "#161827", borderRadius: "4px" }}>
-                            <ion-icon name="image-outline" style={{ fontSize: "1.2rem", color: "rgba(255,255,255,0.1)" }}></ion-icon>
+                {/* Recent searches — shown when no query */}
+                {searchQuery.trim().length <= 2 && recentSearches.length > 0 && (
+                  <div className="search-recents">
+                    <div className="search-recents-header">
+                      <span className="search-recents-label">RECENT</span>
+                      <button className="search-clear-btn" onClick={() => { setRecentSearches([]); localStorage.removeItem("recentSearches"); }}>Clear</button>
+                    </div>
+                    {recentSearches.map((r, i) => (
+                      <button key={i} className="search-recent-item" onClick={() => { setSearchQuery(r); setSearchFocused(true); }}>
+                        <ion-icon name="time-outline"></ion-icon>
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Live results */}
+                {searchQuery.trim().length > 2 && (
+                  <div className="search-results-list">
+                    {searchLoading && (
+                      <div className="search-loading">
+                        <ion-icon name="sync-outline"></ion-icon> Searching...
+                      </div>
+                    )}
+                    {!searchLoading && searchResults.length === 0 && (
+                      <div className="search-empty">No results for "{searchQuery}"</div>
+                    )}
+                    {!searchLoading && searchResults.map((item) => {
+                      const itemTitle = item.title || item.name;
+                      const itemType = item.title ? "movie" : "tv";
+                      const year = (item.release_date || item.first_air_date || "").substring(0, 4);
+                      const rating = item.vote_average ? (Math.round(item.vote_average * 10) / 10) : null;
+                      const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : "";
+                      return (
+                        <Link key={item.id} href={`/details?id=${item.id}&type=${itemType}`} className="search-result-item" onClick={() => handleSearchItemClick(itemTitle)}>
+                          <div className="search-result-thumb">
+                            {posterUrl ? <img src={posterUrl} alt={itemTitle} /> : <ion-icon name="film-outline"></ion-icon>}
                           </div>
-                        )}
-                        <div className="search-item-info">
-                          <div className="search-item-title">{title}</div>
-                          <div className="search-item-meta">
-                            <span className="search-item-badge">
-                              {type === "movie" ? "Movie" : "Series"}
-                            </span>
-                            <span>⭐ {rating}</span>
-                            <span>{year}</span>
+                          <div className="search-result-info">
+                            <div className="search-result-title">{itemTitle}</div>
+                            <div className="search-result-meta">
+                              {rating && <span className="srm-rating">⭐ {rating}</span>}
+                              {year && <span>{year}</span>}
+                              <span className="srm-type">{itemType === "movie" ? "Movie" : "TV Show"}</span>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Hamburger Menu button */}
           <div
             className={`burger-menu ${mobileMenuOpen ? "active" : ""}`}
             id="burgerMenu"
