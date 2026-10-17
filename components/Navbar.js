@@ -164,26 +164,30 @@ export default function Navbar() {
             </button>
 
             <form onSubmit={handleSearchSubmit} id="searchForm">
-              <ion-icon name="search-outline" class="search-input-icon"></ion-icon>
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Titles, people, genres..."
-                id="searchInput"
-                autoComplete="off"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-              />
-              <button
-                type="button"
-                className="close-search-btn"
-                id="closeSearchBtn"
-                onClick={() => { setMobileSearchOpen(false); setSearchQuery(""); setSearchFocused(false); }}
-              >
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </form>
+                <span className="search-input-icon">
+                  <ion-icon name="search-outline"></ion-icon>
+                </span>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Titles, people, genres..."
+                  id="searchInput"
+                  autoComplete="off"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="close-search-btn"
+                    id="closeSearchBtn"
+                    onClick={() => { setMobileSearchOpen(false); setSearchQuery(""); setSearchFocused(false); }}
+                  >
+                    <ion-icon name="close-outline"></ion-icon>
+                  </button>
+                )}
+              </form>
 
             {searchFocused && (
               <div className="search-dropdown" ref={liveResultsRef}>
